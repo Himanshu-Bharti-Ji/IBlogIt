@@ -3,7 +3,7 @@ import About from "./About";
 import Dashboard from "./Dashboard";
 import Projects from "./Projects";
 import SignIn from "./SignIn";
-import SignOut from "./SignOut";
+import SignUp from "./SignUp";
 
 
 export {
@@ -12,5 +12,5 @@ export {
     Dashboard,
     Projects,
     SignIn,
-    SignOut,
+    SignUp,
 }
