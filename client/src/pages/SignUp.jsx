@@ -60,7 +60,7 @@ export default function SignUp() {
             <div className="flex p-3 max-w-4xl mx-auto flex-col md:flex-row md:items-center gap-5">
                 {/* Left Section */}
                 <div className="flex-1 text-center md:text-left">
-                    <Link to={"/"} className='font-bold dark:text-white text-4xl'>
+                    <Link to={"/"} className='font-bold dark:text-white text-3xl'>
                         <span className='text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 font-medium rounded-full px-5 py-2.5 text-center me-2 mb-2'>IBlogIt</span>
                     </Link>
                     <p className='text-sm mt-5'>Begin a journey with IBlogIt! Join our community today. <br />Sign up using your email or Google.</p>
