@@ -4,6 +4,7 @@ import { About, Dashboard, Home, Projects, SignIn, SignUp, } from "./pages"
 import { Header } from "./components"
 import FooterCom from './components/Footer';
 import PrivateRoute from './components/PrivateRoute';
+import CreatePost from './pages/CreatePost';
 
 export default function App() {
 
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/sign-up" element={<SignUp />} />
         <Route element={<PrivateRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/create-post" element={<CreatePost />} />
         </Route>
         <Route path="/projects" element={<Projects />} />
       </Routes>

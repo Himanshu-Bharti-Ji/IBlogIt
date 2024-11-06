@@ -20,9 +20,10 @@ import {
     signoutSuccess
 } from "../redux/user/userSlice";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
+import { Link } from "react-router-dom"
 
 export default function DashProfile() {
-    const { currentUser, error } = useSelector((state) => state?.user);
+    const { currentUser, error, loading } = useSelector((state) => state?.user);
     const dispatch = useDispatch();
     const [imageFile, setImageFile] = useState(null);
     const [imageFileUrl, setImageFileUrl] = useState(null);
@@ -220,12 +221,22 @@ export default function DashProfile() {
                     onChange={handleChange}
                 />
                 <Button
-                    className="text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 rounded-lg text-center "
+                    className="text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 rounded-lg text-center"
                     type="submit"
                     outline
+                    disabled={loading || imageFileUploading}
                 >
-                    Update
+                    {loading ? "Updating..." : "Update"}
                 </Button>
+                {currentUser.isAdmin && (
+                    <Link to={"/create-post"}>
+                        <Button
+                            type="button"
+                            className="w-full text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 rounded-lg text-center">
+                            Create a post
+                        </Button>
+                    </Link>
+                )}
             </form>
             <div className="text-red-600 flex justify-between mt-5">
                 <span onClick={() => setShowModel(true)} className="cursor-pointer">
