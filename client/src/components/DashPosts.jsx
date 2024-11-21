@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 const DashPosts = () => {
   const { currentUser } = useSelector((state) => state.user);
   const [userPosts, setUserPosts] = useState([]);
-  console.log(userPosts);
+  const [showMore, setShowMore] = useState(true);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -17,6 +17,9 @@ const DashPosts = () => {
         const data = await res.json();
         if (res.ok) {
           setUserPosts(data.posts);
+          if (data.length < 9) {
+            setShowMore(false);
+          }
         }
       } catch (error) {
         console.log(error);
@@ -27,8 +30,28 @@ const DashPosts = () => {
     }
   }, [currentUser._id, currentUser.isAdmin]);
 
+  const handleShowMore = async () => {
+    const startIndex = userPosts.length;
+
+    try {
+      const res = await fetch(
+        `/api/post/get-posts?userId=${currentUser._id}&startIndex=${startIndex}`
+      );
+
+      const data = await res.json();
+      if (res.ok) {
+        setUserPosts([...userPosts, ...data.posts]);
+        if (data.posts.length < 9) {
+          setShowMore(false);
+        }
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
   return (
-    <div className="table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
+    <div className="w-full table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
       {currentUser.isAdmin && userPosts.length > 0 ? (
         <>
           <Table hoverable className="shadow-md">
@@ -83,6 +106,16 @@ const DashPosts = () => {
               </Table.Body>
             ))}
           </Table>
+          {showMore && (
+            <div className="w-full text-center py-7">
+              <button
+                onClick={handleShowMore}
+                className="text-teal-500  text-md font-semibold hover:underline"
+              >
+                Show More
+              </button>
+            </div>
+          )}
         </>
       ) : (
         <p>You have no posts yet!</p>
