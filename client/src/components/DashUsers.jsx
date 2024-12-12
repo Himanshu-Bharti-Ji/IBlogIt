@@ -50,24 +50,22 @@ const DashUsers = () => {
     }
   };
 
-  //   const handleDeleteUser = async () => {
-  //     setShowModel(false);
-
-  //     try {
-  //       const res = await fetch(
-  //         `api/user/delete-user/${userIdToDelete}/${currentUser._id}`,
-  //         {
-  //           method: "DELETE",
-  //         }
-  //       );
-  //       const data = await res.json();
-  //       if (!res.ok) {
-  //         console.log(data?.message);
-  //       } else {
-  //         setUsers((prev) => prev.filter((user) => user._id !== userIdToDelete));
-  //       }
-  //     } catch (error) {}
-  //   };
+  const handleDeleteUser = async () => {
+    try {
+      const res = await fetch(`api/user/delete/${userIdToDelete}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        console.log(data?.message);
+      } else {
+        setUsers((prev) => prev.filter((user) => user._id !== userIdToDelete));
+        setShowModel(false);
+      }
+    } catch (error) {
+      console.log(data?.message);
+    }
+  };
 
   return (
     <div className="w-full table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
@@ -155,10 +153,7 @@ const DashUsers = () => {
               Are you sure you want to delete this user ?
             </h3>
             <div className="flex justify-center gap-4">
-              <Button
-                color={"failure"}
-                //    onClick={handleDeleteUser}
-              >
+              <Button color={"failure"} onClick={handleDeleteUser}>
                 Yes, I'm sure
               </Button>
               <Button color={"gray"} onClick={() => setShowModel(false)}>
