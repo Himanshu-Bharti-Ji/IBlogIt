@@ -13,6 +13,7 @@ import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
+import MyButton from "../components/MyButton";
 
 const CreatePost = () => {
   const [file, setFile] = useState(null);
@@ -183,11 +184,9 @@ const CreatePost = () => {
             accept="image/*"
             onChange={(e) => setFile(e.target.files[0])}
           />
-          <Button
-            type="button"
+          <MyButton
             size={"sm"}
             outline
-            className="text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 rounded-lg text-center"
             onClick={handleUploadImage}
             disabled={imageUploadProgress}
           >
@@ -201,7 +200,7 @@ const CreatePost = () => {
             ) : (
               "Upload Image"
             )}
-          </Button>
+          </MyButton>
         </div>
         {imageUploadError && (
           <Alert color={"failure"}>{imageUploadError}</Alert>
@@ -225,12 +224,7 @@ const CreatePost = () => {
           }}
           value={formData?.content}
         />
-        <Button
-          type="submit"
-          className="text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 rounded-lg text-center"
-        >
-          {postId ? "Update" : "Publish"}
-        </Button>
+        <MyButton type="submit">{postId ? "Update" : "Publish"}</MyButton>
         {publishError && (
           <Alert className="mt-5" color={"failure"}>
             {publishError}

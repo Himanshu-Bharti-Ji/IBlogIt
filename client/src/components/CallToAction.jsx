@@ -1,5 +1,6 @@
 import { Button } from "flowbite-react";
 import React from "react";
+import MyButton from "./MyButton";
 
 const CallToAction = () => {
   return (
@@ -9,7 +10,7 @@ const CallToAction = () => {
         <p className="text-gray-500 my-2">
           Explore my work and skills in my portfolio.
         </p>
-        <Button className="text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 rounded-tl-xl rounded-bl-none">
+        <MyButton className="rounded-tl-xl rounded-bl-none">
           <a
             href="https://himanshubharti.netlify.app/"
             target="_blank"
@@ -17,7 +18,7 @@ const CallToAction = () => {
           >
             View Portfolio
           </a>
-        </Button>
+        </MyButton>
       </div>
       <div className="p-7 flex-1 ">
         <img src="https://himanshubharti.netlify.app/assets/heroImg-DsAQzIXj.png" />
