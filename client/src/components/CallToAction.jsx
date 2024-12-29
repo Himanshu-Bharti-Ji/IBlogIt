@@ -10,15 +10,15 @@ const CallToAction = () => {
         <p className="text-gray-500 my-2">
           Explore my work and skills in my portfolio.
         </p>
-        <MyButton className="rounded-tl-xl rounded-bl-none">
-          <a
-            href="https://himanshubharti.netlify.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+        <a
+          href="https://himanshubharti.netlify.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <MyButton className="rounded-tl-xl rounded-bl-none">
             View Portfolio
-          </a>
-        </MyButton>
+          </MyButton>
+        </a>
       </div>
       <div className="p-7 flex-1 ">
         <img src="https://himanshubharti.netlify.app/assets/heroImg-DsAQzIXj.png" />
