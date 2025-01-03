@@ -27,10 +27,10 @@ const DashUsers = () => {
         console.log(error);
       }
     };
-    if (currentUser.isAdmin) {
+    if (currentUser?.isAdmin) {
       fetchUsers();
     }
-  }, [currentUser._id, currentUser.isAdmin]);
+  }, [currentUser._id, currentUser?.isAdmin]);
 
   const handleShowMore = async () => {
     const startIndex = users.length;
@@ -69,7 +69,7 @@ const DashUsers = () => {
 
   return (
     <div className="w-full table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
-      {currentUser.isAdmin && users.length > 0 ? (
+      {currentUser?.isAdmin && users.length > 0 ? (
         <>
           <Table hoverable className="shadow-md">
             <Table.Head>
@@ -81,30 +81,30 @@ const DashUsers = () => {
               <Table.HeadCell>Delete</Table.HeadCell>
             </Table.Head>
             {users?.map((user) => (
-              <Table.Body key={user._id} className="divide-y">
+              <Table.Body key={user?._id} className="divide-y">
                 <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
                   <Table.Cell>
-                    {new Date(user.createdAt).toLocaleDateString()}
+                    {new Date(user?.createdAt).toLocaleDateString()}
                   </Table.Cell>
                   <Table.Cell>
                     <img
-                      src={user.profilePicture}
-                      alt={user.username}
+                      src={user?.profilePicture}
+                      alt={user?.username}
                       className="w-10 h-10 object-cover rounded-full bg-gray-500"
                     />
                   </Table.Cell>
                   <Table.Cell>
                     <div className="font-medium text-gray-900 dark:text-white">
-                      {user.username}
+                      {user?.username}
                     </div>
                   </Table.Cell>
                   <Table.Cell>
                     <div className="font-medium text-gray-900 dark:text-white">
-                      {user.email}
+                      {user?.email}
                     </div>
                   </Table.Cell>
                   <Table.Cell>
-                    {user.isAdmin ? (
+                    {user?.isAdmin ? (
                       <FaCheck className="text-green-500" />
                     ) : (
                       <FaTimes className="text-red-500" />
@@ -114,7 +114,7 @@ const DashUsers = () => {
                     <span
                       onClick={() => {
                         setShowModel(true);
-                        setUserIdToDelete(user._id);
+                        setUserIdToDelete(user?._id);
                       }}
                       className="font-medium text-red-500 hover:underline cursor-pointer"
                     >
