@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Button, Modal, Table } from "flowbite-react";
 import { Link } from "react-router-dom";
-import { HiOutlineExclamationCircle } from "react-icons/hi";
+import { HiOutlineBan, HiOutlineExclamationCircle } from "react-icons/hi";
 import { FaCheck, FaTimes } from "react-icons/fa";
 
 const DashUsers = () => {
@@ -147,20 +147,44 @@ const DashUsers = () => {
       >
         <Modal.Header />
         <Modal.Body>
-          <div className="text-center">
-            <HiOutlineExclamationCircle className="h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto" />
-            <h3 className="mb-5 text-xl text-gray-500 dark:text-gray-400">
-              Are you sure you want to delete this user ?
-            </h3>
-            <div className="flex justify-center gap-4">
-              <Button color={"failure"} onClick={handleDeleteUser}>
-                Yes, I'm sure
-              </Button>
-              <Button color={"gray"} onClick={() => setShowModel(false)}>
-                No, Cancel
-              </Button>
+          {userIdToDelete === "677aa3c758cef46378eb42ab" ? (
+            <div className="text-center">
+              <HiOutlineBan className="h-14 w-14 text-red-500 mb-4 mx-auto" />
+              <h3 className="text-xl text-gray-500 dark:text-gray-400">
+                Whoa, there! 😱 You can't delete the <br />{" "}
+                <strong>Super Admin</strong>, they’re the{" "}
+                <strong>chosen one!</strong> <br /> Are you trying to start a
+                rebellion? ✋
+              </h3>
+              <p className="text-blue-500 text-lg mt-1">
+                Are you secretly a villain? 🤨
+              </p>
+              <div className="flex justify-center gap-4 mt-5 w-1/2 mx-auto">
+                <Button
+                  fullSized
+                  color={"failure"}
+                  onClick={() => setShowModel(false)}
+                >
+                  Sorry 😔
+                </Button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="text-center">
+              <HiOutlineExclamationCircle className="h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto" />
+              <h3 className="mb-5 text-xl text-gray-500 dark:text-gray-400">
+                Are you sure you want to delete this user ?
+              </h3>
+              <div className="flex justify-center gap-4">
+                <Button color={"failure"} onClick={handleDeleteUser}>
+                  Yes, I'm sure
+                </Button>
+                <Button color={"gray"} onClick={() => setShowModel(false)}>
+                  No, Cancel
+                </Button>
+              </div>
+            </div>
+          )}
         </Modal.Body>
       </Modal>
     </div>

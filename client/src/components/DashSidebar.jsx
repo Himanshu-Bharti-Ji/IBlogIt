@@ -7,6 +7,10 @@ import {
   HiOutlineUserGroup,
   HiAnnotation,
   HiChartPie,
+  HiPlusCircle,
+  HiTag,
+  HiPencilAlt,
+  HiFolderAdd,
 } from "react-icons/hi";
 import { Link, useLocation } from "react-router-dom";
 import { signoutSuccess } from "../redux/user/userSlice";
@@ -67,7 +71,7 @@ export default function DashSidebar() {
               Profile
             </Sidebar.Item>
           </Link>
-          {currentUser && (
+          {currentUser && currentUser?.isAdmin && (
             <>
               <Link to={"/dashboard?tab=posts"}>
                 <Sidebar.Item
@@ -76,6 +80,33 @@ export default function DashSidebar() {
                   as="div"
                 >
                   Posts
+                </Sidebar.Item>
+              </Link>
+              <Link to={"/dashboard?tab=create-post"}>
+                <Sidebar.Item
+                  active={tab === "create-post"}
+                  icon={HiPlusCircle}
+                  as="div"
+                >
+                  Create Post
+                </Sidebar.Item>
+              </Link>
+              <Link to={"/dashboard?tab=categories"}>
+                <Sidebar.Item
+                  active={tab === "categories"}
+                  icon={HiTag}
+                  as="div"
+                >
+                  Categories
+                </Sidebar.Item>
+              </Link>
+              <Link to={"/dashboard?tab=create-category"}>
+                <Sidebar.Item
+                  active={tab === "create-category"}
+                  icon={HiFolderAdd}
+                  as="div"
+                >
+                  Create Category
                 </Sidebar.Item>
               </Link>
               <Link to={"/dashboard?tab=users"}>

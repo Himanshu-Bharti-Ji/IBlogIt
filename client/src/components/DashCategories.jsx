@@ -1,25 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Button, Modal, Table } from "flowbite-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 
-const DashPosts = () => {
+const DashCategories = () => {
   const { currentUser } = useSelector((state) => state.user);
-  const [userPosts, setUserPosts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [showMore, setShowMore] = useState(true);
   const [showModel, setShowModel] = useState(false);
-  const [postIdToDelete, setPostIdToDelete] = useState("");
+  const [categoryIdToDelete, setCategoryIdToDelete] = useState("");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchPosts = async () => {
+    const fetchCategories = async () => {
       try {
-        const res = await fetch(
-          `/api/post/get-posts?userId=${currentUser._id}`
-        );
+        const res = await fetch(`/api/category/get-categories`);
         const data = await res.json();
         if (res.ok) {
-          setUserPosts(data.posts);
+          setCategories(data?.categories);
           if (data.length < 9) {
             setShowMore(false);
           }
@@ -29,22 +29,22 @@ const DashPosts = () => {
       }
     };
     if (currentUser?.isAdmin) {
-      fetchPosts();
+      fetchCategories();
     }
   }, [currentUser._id, currentUser?.isAdmin]);
 
   const handleShowMore = async () => {
-    const startIndex = userPosts.length;
+    const startIndex = categories.length;
 
     try {
       const res = await fetch(
-        `/api/post/get-posts?userId=${currentUser._id}&startIndex=${startIndex}`
+        `/api/category/get-categories?startIndex=${startIndex}`
       );
 
       const data = await res.json();
       if (res.ok) {
-        setUserPosts([...userPosts, ...data.posts]);
-        if (data.posts.length < 9) {
+        setCategories([...categories, ...data.categories]);
+        if (data.categories.length < 9) {
           setShowMore(false);
         }
       }
@@ -53,10 +53,12 @@ const DashPosts = () => {
     }
   };
 
-  const handleDeletePost = async () => {
+  const handleDeleteCategroy = async () => {
+    setShowModel(false);
+
     try {
       const res = await fetch(
-        `api/post/delete-post/${postIdToDelete}/${currentUser._id}`,
+        `api/category/deleteCategory/${categoryIdToDelete}`,
         {
           method: "DELETE",
         }
@@ -64,10 +66,9 @@ const DashPosts = () => {
       const data = await res.json();
       if (!res.ok) {
         console.log(data?.message);
-        setShowModel(false);
       } else {
-        setUserPosts((prev) =>
-          prev.filter((post) => post._id !== postIdToDelete)
+        setCategories((prev) =>
+          prev.filter((post) => post._id !== categoryIdToDelete)
         );
       }
     } catch (error) {
@@ -77,48 +78,37 @@ const DashPosts = () => {
 
   return (
     <div className="w-full table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
-      {currentUser?.isAdmin && userPosts.length > 0 ? (
+      {currentUser?.isAdmin && categories.length > 0 ? (
         <>
           <Table hoverable className="shadow-md">
             <Table.Head>
               <Table.HeadCell>Date Updated</Table.HeadCell>
-              <Table.HeadCell>Post Image</Table.HeadCell>
-              <Table.HeadCell>Post Title</Table.HeadCell>
-              <Table.HeadCell>Category</Table.HeadCell>
+              <Table.HeadCell>Category Title</Table.HeadCell>
+              <Table.HeadCell>Discription</Table.HeadCell>
               <Table.HeadCell>Delete</Table.HeadCell>
               <Table.HeadCell>
                 <span>Edit</span>
               </Table.HeadCell>
             </Table.Head>
-            {userPosts?.map((post) => (
-              <Table.Body key={post._id} className="divide-y">
+            {categories?.map((category) => (
+              <Table.Body key={category._id} className="divide-y">
                 <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
                   <Table.Cell>
-                    {new Date(post.updatedAt).toLocaleDateString()}
+                    {new Date(category.updatedAt).toLocaleDateString()}
                   </Table.Cell>
+                  <Table.Cell>{category?.title}</Table.Cell>
                   <Table.Cell>
-                    <Link to={`/post/${post.slug}`}>
-                      <img
-                        src={post.image}
-                        alt={post.title}
-                        className="w-20 h-10 object-cover bg-gray-500"
-                      />
-                    </Link>
+                    <span
+                      dangerouslySetInnerHTML={{
+                        __html: category?.description,
+                      }}
+                    />
                   </Table.Cell>
-                  <Table.Cell>
-                    <Link
-                      className="font-medium text-gray-900 dark:text-white"
-                      to={`/post/${post.slug}`}
-                    >
-                      <span dangerouslySetInnerHTML={{ __html: post?.title }} />
-                    </Link>
-                  </Table.Cell>
-                  <Table.Cell>{post.category}</Table.Cell>
                   <Table.Cell>
                     <span
                       onClick={() => {
                         setShowModel(true);
-                        setPostIdToDelete(post._id);
+                        setCategoryIdToDelete(category._id);
                       }}
                       className="font-medium text-red-500 hover:underline cursor-pointer"
                     >
@@ -126,12 +116,16 @@ const DashPosts = () => {
                     </span>
                   </Table.Cell>
                   <Table.Cell>
-                    <Link
-                      className="font-medium text-teal-500 hover:underline"
-                      to={`/update-post/${post._id}`}
+                    <span
+                      className="font-medium text-teal-500 hover:underline hover:cursor-pointer"
+                      onClick={() =>
+                        navigate("/dashboard?tab=create-category", {
+                          state: { categoryId: category?._id },
+                        })
+                      }
                     >
-                      <span>Edit</span>
-                    </Link>
+                      Edit
+                    </span>
                   </Table.Cell>
                 </Table.Row>
               </Table.Body>
@@ -149,7 +143,7 @@ const DashPosts = () => {
           )}
         </>
       ) : (
-        <p>You have no posts yet!</p>
+        <p>You have no Categories yet!</p>
       )}
       <Modal
         show={showModel}
@@ -162,10 +156,10 @@ const DashPosts = () => {
           <div className="text-center">
             <HiOutlineExclamationCircle className="h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto" />
             <h3 className="mb-5 text-xl text-gray-500 dark:text-gray-400">
-              Are you sure you want to delete this post ?
+              Are you sure you want to delete this category ?
             </h3>
             <div className="flex justify-center gap-4">
-              <Button color={"failure"} onClick={handleDeletePost}>
+              <Button color={"failure"} onClick={handleDeleteCategroy}>
                 Yes, I'm sure
               </Button>
               <Button color={"gray"} onClick={() => setShowModel(false)}>
@@ -179,4 +173,4 @@ const DashPosts = () => {
   );
 };
 
-export default DashPosts;
+export default DashCategories;

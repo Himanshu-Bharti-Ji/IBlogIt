@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import MyButton from "../components/MyButton";
 import PostCard from "../components/PostCard";
+import { useSelector } from "react-redux";
 
 const SearchPage = () => {
   const [sidebarData, setSidebarData] = useState({
@@ -15,8 +16,26 @@ const SearchPage = () => {
   const [showMore, setShowMore] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+  const { currentUser } = useSelector((state) => state?.user);
 
-  console.log("sidebarData", sidebarData);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`/api/category/get-categories?limit=none`);
+        const data = await res.json();
+        if (res.ok) {
+          setCategories(data?.categories);
+          if (data.length < 9) {
+            setShowMore(false);
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchCategories();
+  }, [currentUser._id]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -156,10 +175,14 @@ const SearchPage = () => {
               value={sidebarData?.category}
               id="category"
             >
-              <option value={"uncategorized"}>Uncategorized</option>
-              <option value={"javascript"}>Javascript</option>
-              <option value={"react"}>React</option>
-              <option value={"mongodb"}>MongoDB</option>
+              <option value={"uncategorized"}>Select a Category</option>
+              {categories &&
+                categories.length > 0 &&
+                categories?.map((category) => (
+                  <option key={category.id} value={category.title}>
+                    {category?.title}
+                  </option>
+                ))}
             </Select>
           </div>
           <MyButton type="submit" outline>

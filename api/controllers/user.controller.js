@@ -62,12 +62,18 @@ export const deleteUser = async (req, res, next) => {
         return next(errorHandler(403, "You are not allowed to delete this user"))
     }
 
-    try {
-        await User.findByIdAndDelete(req.params.userId);
-        res.status(200).json("User has been deleted");
-    } catch (error) {
-        next(error);
+    if (req.params.userId == "677aa3c758cef46378eb42ab") {
+        res.status(400).json("Nice try! But only a true hero can perform such actions... and that's definitely not you right now! 😏 Try again when you're wearing a cape. 🦸‍♂️");
+    } else {
+        try {
+            await User.findByIdAndDelete(req.params.userId);
+            res.status(200).json("User has been deleted");
+        } catch (error) {
+            next(error);
+        }
     }
+
+
 }
 
 export const signout = async (_, res, next) => {

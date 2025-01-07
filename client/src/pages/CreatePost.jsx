@@ -24,6 +24,7 @@ const CreatePost = () => {
   const navigate = useNavigate();
   const { postId } = useParams();
   const { currentUser } = useSelector((state) => state?.user);
+  const [categories, setCategories] = useState([]);
 
   if (postId) {
     useEffect(() => {
@@ -47,6 +48,26 @@ const CreatePost = () => {
       }
     }, [postId]);
   }
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`/api/category/get-categories?limit=none`);
+        const data = await res.json();
+        if (res.ok) {
+          setCategories(data?.categories);
+          if (data.length < 9) {
+            setShowMore(false);
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    if (currentUser?.isAdmin) {
+      fetchCategories();
+    }
+  }, [currentUser._id, currentUser?.isAdmin]);
 
   const handleUploadImage = async () => {
     try {
@@ -147,7 +168,7 @@ const CreatePost = () => {
   };
 
   return (
-    <div className="p-3 max-w-3xl mx-auto min-h-screen">
+    <div className="p-3 max-w-3xl mx-auto min-h-screen w-full">
       <h1 className="text-center text-3xl my-7 font-semibold">
         {postId ? "Update" : "Create a"} post
       </h1>
@@ -172,9 +193,16 @@ const CreatePost = () => {
             value={formData?.category}
           >
             <option value={"uncategorized"}>Select a Category</option>
-            <option value={"javascript"}>Javascript</option>
+            {categories &&
+              categories.length > 0 &&
+              categories?.map((category) => (
+                <option key={category.id} value={category.title}>
+                  {category?.title}
+                </option>
+              ))}
+            {/* <option value={"javascript"}>Javascript</option>
             <option value={"react"}>React</option>
-            <option value={"mongodb"}>MongoDB</option>
+            <option value={"mongodb"}>MongoDB</option> */}
           </Select>
         </div>
         <div className="flex gap-4 items-center justify-between border-4 border-teal-500 border-dotted p-3">

@@ -6,6 +6,9 @@ import DashPosts from "../components/DashPosts";
 import DashUsers from "../components/DashUsers";
 import DashComments from "../components/DashComments";
 import DashboardComp from "../components/DashboardComp";
+import CreatePost from "./CreatePost";
+import CreateCategory from "./CreateCategory";
+import DashCategories from "../components/DashCategories";
 
 export default function Dashboard() {
   const location = useLocation();
@@ -37,6 +40,15 @@ export default function Dashboard() {
 
       {/* Dashboard... */}
       {tab === "dash" && <DashboardComp />}
+
+      {/* Create Post... */}
+      {tab === "create-post" && <CreatePost />}
+
+      {/* Create Category... */}
+      {tab === "create-category" && <CreateCategory />}
+
+      {/* Categories... */}
+      {tab === "categories" && <DashCategories />}
     </div>
   );
 }
