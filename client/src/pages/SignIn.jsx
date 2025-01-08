@@ -80,7 +80,7 @@ export default function SignIn() {
               <Label value="Your email" />
               <TextInput
                 type="email"
-                placeholder="Email"
+                placeholder="admin@gmail.com"
                 id="email"
                 onChange={handleChange}
               />
@@ -89,7 +89,7 @@ export default function SignIn() {
               <Label value="Your password" />
               <TextInput
                 type="password"
-                placeholder="Password"
+                placeholder="admin123"
                 id="password"
                 onChange={handleChange}
               />
