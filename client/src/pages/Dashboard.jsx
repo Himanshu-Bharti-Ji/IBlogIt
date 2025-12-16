@@ -9,6 +9,8 @@ import DashboardComp from "../components/DashboardComp";
 import CreatePost from "./CreatePost";
 import CreateCategory from "./CreateCategory";
 import DashCategories from "../components/DashCategories";
+import PermissionRequests from "../components/PermissionRequests";
+import MyPermissionRequests from "../components/MyPermissionRequests";
 
 export default function Dashboard() {
   const location = useLocation();
@@ -49,6 +51,12 @@ export default function Dashboard() {
 
       {/* Categories... */}
       {tab === "categories" && <DashCategories />}
+
+      {/* Permission Requests (Super Admin)... */}
+      {tab === "permissions" && <PermissionRequests />}
+
+      {/* My Permission Requests (Admin)... */}
+      {tab === "my-permissions" && <MyPermissionRequests />}
     </div>
   );
 }

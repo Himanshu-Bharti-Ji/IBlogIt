@@ -1,5 +1,9 @@
 import Post from "../models/post.model.js";
-import { errorHandler } from "../utils/errorHandler.js"
+import PermissionRequest from "../models/permissionRequest.model.js";
+import User from "../models/user.model.js";
+import { errorHandler } from "../utils/errorHandler.js";
+
+const SUPER_ADMIN_ID = "677aa3c758cef46378eb42ab";
 
 export const create = async (req, res, next) => {
     if (!req.body.title || !req.body.content) {
@@ -100,5 +104,73 @@ export const updatePost = async (req, res, next) => {
         res.status(200).json(updatedPost)
     } catch (error) {
         next(error)
+    }
+}
+
+// Download posts with permission check
+export const downloadPosts = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const isSuperAdmin = userId === SUPER_ADMIN_ID;
+
+        const user = await User.findById(userId);
+        if (!user || (!user.isAdmin && !isSuperAdmin)) {
+            return next(errorHandler(403, "Only admins and super admins can download posts"));
+        }
+
+        let maxRecords = null;
+
+        if (!isSuperAdmin) {
+            const revokedRequest = await PermissionRequest.findOne({
+                requesterId: userId,
+                requestType: "download_all_posts",
+                status: "revoked",
+            }).sort({ approvedAt: -1 });
+
+            if (revokedRequest) {
+                const newerApprovedRequest = await PermissionRequest.findOne({
+                    requesterId: userId,
+                    requestType: "download_all_posts",
+                    status: "approved",
+                    approvedAt: { $gt: revokedRequest.approvedAt },
+                });
+
+                if (!newerApprovedRequest) {
+                    maxRecords = 9;
+                } else {
+                    maxRecords = null;
+                }
+            } else {
+                const approvedRequest = await PermissionRequest.findOne({
+                    requesterId: userId,
+                    requestType: "download_all_posts",
+                    status: "approved",
+                });
+
+                if (!approvedRequest) {
+                    maxRecords = 9;
+                } else {
+                    maxRecords = null;
+                }
+            }
+        }
+
+        const query = {};
+        if (req.query.userId) {
+            query.userId = req.query.userId;
+        }
+
+        const posts = maxRecords
+            ? await Post.find(query).sort({ updatedAt: -1 }).limit(maxRecords)
+            : await Post.find(query).sort({ updatedAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            posts,
+            totalRecords: posts.length,
+            maxRecords: maxRecords || "unlimited",
+        });
+    } catch (error) {
+        next(error);
     }
 }

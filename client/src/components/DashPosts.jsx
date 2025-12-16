@@ -1,26 +1,37 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { Button, Modal, Table } from "flowbite-react";
+import { Button, Modal, Table, Alert } from "flowbite-react";
 import { Link } from "react-router-dom";
-import { HiOutlineExclamationCircle } from "react-icons/hi";
+import { HiOutlineExclamationCircle, HiOutlineDownload } from "react-icons/hi";
+import { useUserRole } from "../hooks/useUserRole";
+import { exportPostsToExcelSimple } from "../utils/excelExport";
 
 const DashPosts = () => {
   const { currentUser } = useSelector((state) => state.user);
+  const { isSuperAdmin, isAdmin } = useUserRole();
   const [userPosts, setUserPosts] = useState([]);
   const [showMore, setShowMore] = useState(true);
   const [showModel, setShowModel] = useState(false);
   const [postIdToDelete, setPostIdToDelete] = useState("");
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
+  const [downloadPermission, setDownloadPermission] = useState(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [pendingRequest, setPendingRequest] = useState(false);
+  const [alertMessage, setAlertMessage] = useState(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         const res = await fetch(
-          `/api/post/get-posts?userId=${currentUser._id}`
+          `/api/post/get-posts?userId=${currentUser._id}`,
+          {
+            credentials: "include",
+          }
         );
         const data = await res.json();
         if (res.ok) {
           setUserPosts(data.posts);
-          if (data.length < 9) {
+          if (data.posts.length < 9) {
             setShowMore(false);
           }
         }
@@ -28,17 +39,70 @@ const DashPosts = () => {
         console.log(error);
       }
     };
-    if (currentUser?.isAdmin) {
+
+    const checkDownloadPermission = async () => {
+      try {
+        const res = await fetch("/api/permission/check-permission", {
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setDownloadPermission(data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    const checkPendingRequest = async () => {
+      try {
+        const res = await fetch("/api/permission/my-requests", {
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (res.ok) {
+          const pending = data.requests.find(
+            (req) =>
+              req.requestType === "download_all_posts" &&
+              req.status === "pending"
+          );
+          setPendingRequest(!!pending);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    if (currentUser?.isAdmin || isSuperAdmin) {
       fetchPosts();
+      if (!isSuperAdmin) {
+        checkDownloadPermission();
+        checkPendingRequest();
+      }
     }
-  }, [currentUser._id, currentUser?.isAdmin]);
+
+    let interval;
+    if (currentUser?.isAdmin && !isSuperAdmin) {
+      interval = setInterval(() => {
+        checkDownloadPermission();
+        checkPendingRequest();
+      }, 30000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [currentUser._id, currentUser?.isAdmin, isSuperAdmin]);
 
   const handleShowMore = async () => {
     const startIndex = userPosts.length;
 
     try {
       const res = await fetch(
-        `/api/post/get-posts?userId=${currentUser._id}&startIndex=${startIndex}`
+        `/api/post/get-posts?userId=${currentUser._id}&startIndex=${startIndex}`,
+        {
+          credentials: "include",
+        }
       );
 
       const data = await res.json();
@@ -56,9 +120,10 @@ const DashPosts = () => {
   const handleDeletePost = async () => {
     try {
       const res = await fetch(
-        `api/post/delete-post/${postIdToDelete}/${currentUser._id}`,
+        `/api/post/delete-post/${postIdToDelete}/${currentUser._id}`,
         {
           method: "DELETE",
+          credentials: "include",
         }
       );
       const data = await res.json();
@@ -69,15 +134,166 @@ const DashPosts = () => {
         setUserPosts((prev) =>
           prev.filter((post) => post._id !== postIdToDelete)
         );
+        setShowModel(false);
       }
     } catch (error) {
       console.log(error);
     }
   };
 
+  const handleRequestPermission = async () => {
+    try {
+      const res = await fetch("/api/permission/request", {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPendingRequest(true);
+        setShowPermissionModal(false);
+        setAlertMessage({
+          type: "success",
+          message: "Permission request submitted successfully. Waiting for super admin approval.",
+        });
+        setTimeout(() => setAlertMessage(null), 5000);
+        const refreshRes = await fetch("/api/permission/check-permission", {
+          credentials: "include",
+        });
+        const refreshData = await refreshRes.json();
+        if (refreshRes.ok) {
+          setDownloadPermission(refreshData);
+        }
+      } else {
+        setAlertMessage({
+          type: "failure",
+          message: data.message || "Failed to submit request",
+        });
+        setTimeout(() => setAlertMessage(null), 5000);
+      }
+    } catch (error) {
+      console.log(error);
+      setAlertMessage({
+        type: "failure",
+        message: "Error submitting request",
+      });
+      setTimeout(() => setAlertMessage(null), 5000);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (isSuperAdmin) {
+      setIsDownloading(true);
+      try {
+        const res = await fetch(
+          `/api/post/download-posts?userId=${currentUser._id}`,
+          {
+            credentials: "include",
+          }
+        );
+        const data = await res.json();
+        if (res.ok) {
+          await exportPostsToExcelSimple(data.posts);
+          setAlertMessage({
+            type: "success",
+            message: `Successfully downloaded ${data.posts.length} posts`,
+          });
+          setTimeout(() => setAlertMessage(null), 5000);
+        } else {
+          setAlertMessage({
+            type: "failure",
+            message: data.message || "Failed to download posts",
+          });
+          setTimeout(() => setAlertMessage(null), 5000);
+        }
+      } catch (error) {
+        console.log(error);
+        setAlertMessage({
+          type: "failure",
+          message: "Error downloading posts",
+        });
+        setTimeout(() => setAlertMessage(null), 5000);
+      } finally {
+        setIsDownloading(false);
+      }
+      return;
+    }
+
+    if (
+      downloadPermission?.maxRecords === 9 &&
+      userPosts.length > 9
+    ) {
+      setShowPermissionModal(true);
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      const res = await fetch(
+        `/api/post/download-posts?userId=${currentUser._id}`,
+        {
+          credentials: "include",
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        await exportPostsToExcelSimple(data.posts);
+        const message = data.maxRecords === 9 
+          ? `Successfully downloaded ${data.posts.length} posts (limited to 9). Request permission to download all posts.`
+          : `Successfully downloaded ${data.posts.length} posts`;
+        setAlertMessage({
+          type: "success",
+          message,
+        });
+        setTimeout(() => setAlertMessage(null), 5000);
+      } else {
+        setAlertMessage({
+          type: "failure",
+          message: data.message || "Failed to download posts",
+        });
+        setTimeout(() => setAlertMessage(null), 5000);
+      }
+    } catch (error) {
+      console.log(error);
+      setAlertMessage({
+        type: "failure",
+        message: "Error downloading posts",
+      });
+      setTimeout(() => setAlertMessage(null), 5000);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <div className="w-full table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
-      {currentUser?.isAdmin && userPosts.length > 0 ? (
+      {alertMessage && (
+        <Alert
+          color={alertMessage.type === "success" ? "success" : "failure"}
+          className="mb-4"
+          onDismiss={() => setAlertMessage(null)}
+        >
+          {alertMessage.message}
+        </Alert>
+      )}
+
+      {(isAdmin || isSuperAdmin) && userPosts.length > 0 && (
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold dark:text-white">Posts</h2>
+          {(isAdmin || isSuperAdmin) && userPosts.length > 0 && (
+            <Button
+              onClick={handleDownload}
+              disabled={isDownloading}
+              gradientDuoTone="purpleToBlue"
+              className="flex items-center gap-2"
+            >
+              <HiOutlineDownload className="w-5 h-5" />
+              {isDownloading ? "Downloading..." : "Download Excel"}
+            </Button>
+          )}
+        </div>
+      )}
+
+      {(isAdmin || isSuperAdmin) && userPosts.length > 0 ? (
         <>
           <Table hoverable className="shadow-md">
             <Table.Head>
@@ -166,12 +382,59 @@ const DashPosts = () => {
             </h3>
             <div className="flex justify-center gap-4">
               <Button color={"failure"} onClick={handleDeletePost}>
-                Yes, I'm sure
+                Yes, I&apos;m sure
               </Button>
               <Button color={"gray"} onClick={() => setShowModel(false)}>
                 No, Cancel
               </Button>
             </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      <Modal
+        show={showPermissionModal}
+        onClose={() => setShowPermissionModal(false)}
+        popup
+        size={"lg"}
+      >
+        <Modal.Header>Permission Required</Modal.Header>
+        <Modal.Body>
+          <div className="text-center">
+            <HiOutlineExclamationCircle className="h-14 w-14 text-yellow-400 dark:text-yellow-200 mb-4 mx-auto" />
+            <h3 className="mb-5 text-xl text-gray-500 dark:text-gray-400">
+              {pendingRequest
+                ? "You have a pending permission request. Please wait for super admin approval."
+                : downloadPermission?.isRevoked
+                ? "Your permission has been revoked by super admin. Would you like to request permission again?"
+                : "You can download up to 9 posts. To download all posts, you need permission from super admin. Would you like to request permission?"}
+            </h3>
+            {!pendingRequest && (
+              <div className="flex justify-center gap-4">
+                <Button
+                  color={"success"}
+                  onClick={handleRequestPermission}
+                >
+                  {downloadPermission?.isRevoked ? "Request Permission Again" : "Request Permission"}
+                </Button>
+                <Button
+                  color={"gray"}
+                  onClick={() => setShowPermissionModal(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
+            {pendingRequest && (
+              <div className="flex justify-center gap-4">
+                <Button
+                  color={"gray"}
+                  onClick={() => setShowPermissionModal(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            )}
           </div>
         </Modal.Body>
       </Modal>

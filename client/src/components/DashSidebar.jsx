@@ -11,17 +11,21 @@ import {
   HiTag,
   HiPencilAlt,
   HiFolderAdd,
+  HiShieldCheck,
 } from "react-icons/hi";
 import { Link, useLocation } from "react-router-dom";
 import { signoutSuccess } from "../redux/user/userSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { useUserRole } from "../hooks/useUserRole";
 
 export default function DashSidebar() {
   const dispatch = useDispatch();
   const location = useLocation();
   const [tab, setTab] = useState("");
+  const [unviewedCount, setUnviewedCount] = useState(0);
 
   const { currentUser } = useSelector((state) => state.user);
+  const { isSuperAdmin, isAdmin } = useUserRole();
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -30,6 +34,37 @@ export default function DashSidebar() {
       setTab(tabFromUrl);
     }
   }, [location.search]);
+
+  useEffect(() => {
+    const fetchUnviewedCount = async () => {
+      if (isAdmin && !isSuperAdmin) {
+        try {
+          const res = await fetch("/api/permission/unviewed-count", {
+            credentials: "include",
+          });
+          const data = await res.json();
+          if (res.ok) {
+            setUnviewedCount(data.count || 0);
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    };
+
+    fetchUnviewedCount();
+    const interval = setInterval(fetchUnviewedCount, 30000);
+    
+    const handlePermissionUpdate = () => {
+      fetchUnviewedCount();
+    };
+    window.addEventListener("permission-updated", handlePermissionUpdate);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("permission-updated", handlePermissionUpdate);
+    };
+  }, [isAdmin, isSuperAdmin]);
 
   const handleSignout = async () => {
     try {
@@ -127,6 +162,30 @@ export default function DashSidebar() {
                   Comments
                 </Sidebar.Item>
               </Link>
+              {isSuperAdmin && (
+                <Link to={"/dashboard?tab=permissions"}>
+                  <Sidebar.Item
+                    active={tab === "permissions"}
+                    icon={HiShieldCheck}
+                    as="div"
+                  >
+                    Permission Requests
+                  </Sidebar.Item>
+                </Link>
+              )}
+              {isAdmin && !isSuperAdmin && (
+                <Link to={"/dashboard?tab=my-permissions"}>
+                  <Sidebar.Item
+                    active={tab === "my-permissions"}
+                    icon={HiShieldCheck}
+                    as="div"
+                    label={unviewedCount > 0 ? unviewedCount.toString() : undefined}
+                    labelColor={unviewedCount > 0 ? "failure" : "dark"}
+                  >
+                    My Permissions
+                  </Sidebar.Item>
+                </Link>
+              )}
             </>
           )}
           <Sidebar.Item
